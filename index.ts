@@ -1,4 +1,4 @@
-import { MongoClient, Db, InsertOneResult, UpdateResult, WithId, Document } from "mongodb";
+import { MongoClient, Db, InsertOneResult, UpdateResult, WithId, Document, ObjectId } from "mongodb";
 
 /**
  * The WildMongo wrapper class for the WIldMongoWhispers utility
@@ -35,10 +35,10 @@ export class WildMongo {
      * Manually closes the current Mongo pool connection
      * Only use this if you understand how Mongo connection pools work
      */
-    async ClosePoolConnection(): Promise<void> {
+    async ClosePoolConnection(logCloseMessage: boolean = false): Promise<void> {
         await this.client.close();
 
-        console.log(`[${new Date().toISOString()}] Mongo pool connection closed.`);
+        if (logCloseMessage) console.log(`[${new Date().toISOString()}] Mongo pool connection closed.`);
     }
 
     /**
@@ -117,7 +117,7 @@ export class WildMongo {
 
     /**
      * Fetch results from your database based on a filter
-     * @param collection The collection to update
+     * @param collection The collection to search within
      * @param filter A query object used to match the document(s) to fetch. Only documents that satisfy this condition will be fetched.
      * @returns Promise<Array<any>>
      */
@@ -128,6 +128,40 @@ export class WildMongo {
         }
 
         let result = await this.database.collection(collection).find(filter).toArray();
+        
+        return result;
+    }
+
+    /**
+     * Find a record with a specified _id
+     * @param collection The collection to search within
+     * @param id The record ID to search for
+     * @returns Promise<any>
+     */
+    async findByID(collection: string, id: string): Promise<any> {
+        if (this.connectionStatus === "closed") {
+            await this.client.connect();
+            this.connectionStatus = "open";
+        }
+
+        let result = await this.database.collection(collection).findOne({ _id: new ObjectId(id) });
+        
+        return result;
+    }
+
+    /**
+     * Find a record with a specific _id and delete it
+     * @param collection The collection to search and delete within
+     * @param id The record ID to search for
+     * @returns : Promise<WithId<Document>>
+     */
+    async deleteByID(collection: string, id: string): Promise<WithId<Document>> {
+        if (this.connectionStatus === "closed") {
+            await this.client.connect();
+            this.connectionStatus = "open";
+        }
+
+        let result = await this.database.collection(collection).findOneAndDelete({ _id: new ObjectId(id) });
         
         return result;
     }

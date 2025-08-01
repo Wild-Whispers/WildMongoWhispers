@@ -43,9 +43,10 @@ class WildMongo {
      * Only use this if you understand how Mongo connection pools work
      */
     ClosePoolConnection() {
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter(this, arguments, void 0, function* (logCloseMessage = false) {
             yield this.client.close();
-            console.log(`[${new Date().toISOString()}] Mongo pool connection closed.`);
+            if (logCloseMessage)
+                console.log(`[${new Date().toISOString()}] Mongo pool connection closed.`);
         });
     }
     /**
@@ -122,7 +123,7 @@ class WildMongo {
     }
     /**
      * Fetch results from your database based on a filter
-     * @param collection The collection to update
+     * @param collection The collection to search within
      * @param filter A query object used to match the document(s) to fetch. Only documents that satisfy this condition will be fetched.
      * @returns Promise<Array<any>>
      */
@@ -133,6 +134,38 @@ class WildMongo {
                 this.connectionStatus = "open";
             }
             let result = yield this.database.collection(collection).find(filter).toArray();
+            return result;
+        });
+    }
+    /**
+     * Find a record with a specified _id
+     * @param collection The collection to search within
+     * @param id The record ID to search for
+     * @returns Promise<any>
+     */
+    findByID(collection, id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.connectionStatus === "closed") {
+                yield this.client.connect();
+                this.connectionStatus = "open";
+            }
+            let result = yield this.database.collection(collection).findOne({ _id: new mongodb_1.ObjectId(id) });
+            return result;
+        });
+    }
+    /**
+     * Find a record with a specific _id and delete it
+     * @param collection The collection to search and delete within
+     * @param id The record ID to search for
+     * @returns : Promise<WithId<Document>>
+     */
+    deleteByID(collection, id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.connectionStatus === "closed") {
+                yield this.client.connect();
+                this.connectionStatus = "open";
+            }
+            let result = yield this.database.collection(collection).findOneAndDelete({ _id: new mongodb_1.ObjectId(id) });
             return result;
         });
     }
