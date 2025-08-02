@@ -111,6 +111,8 @@ export class WildMongo {
         }
 
         let result = await this.database.collection(collection).findOneAndUpdate(filter, dataObj, { upsert: upsert, returnDocument: "after" });
+
+        if (!result) throw new Error("findOneAndUpdate returned null, it must return WithId<Document>");
         
         return result;
     }
