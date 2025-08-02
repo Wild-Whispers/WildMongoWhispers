@@ -104,7 +104,7 @@ export class WildMongo {
      * @param upsert Whether or not to only update, or insert if a record doesn't already exist with that filter
      * @returns Promise<WithId<Document>>
      */
-    async findOneAndUpdate(collection: string, filter: Object, dataObj: Object, upsert=true): Promise<WithId<Document> | null> {
+    async findOneAndUpdate(collection: string, filter: Object, dataObj: Object, upsert=true): Promise<WithId<Document>> {
         if (this.connectionStatus === "closed") {
             await this.client.connect();
             this.connectionStatus = "open";
