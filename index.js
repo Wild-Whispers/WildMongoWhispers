@@ -168,6 +168,8 @@ class WildMongo {
                 this.connectionStatus = "open";
             }
             let result = yield this.database.collection(collection).findOneAndDelete({ _id: new mongodb_1.ObjectId(id) });
+            if (!result)
+                throw new Error("findOneAndDelete returned null, it must return WithId<Document>");
             return result;
         });
     }
